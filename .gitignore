@@ -1,0 +1,9 @@
+vendor
+.idea
+composer.lock
+
+# Uploads utilisateurs generes au runtime (les images d'origine 1.jpeg-31.jpeg restent suivies)
+/public/storage/*
+
+# Cache de resultats PHPUnit (genere localement a chaque execution des tests)
+.phpunit.result.cache
