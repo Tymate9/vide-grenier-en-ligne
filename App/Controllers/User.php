@@ -110,14 +110,26 @@ class User extends \Core\Controller
                 return false;
             }
 
-            // TODO: Create a remember me cookie if the user has selected the option
-            // to remained logged in on the login form.
-            // https://github.com/andrewdyer/php-mvc-register-login/blob/development/www/app/Model/UserLogin.php#L86
-
             $_SESSION['user'] = array(
                 'id' => $user['id'],
                 'username' => $user['username'],
             );
+
+            if (isset($data['remember-me'])) {
+                $token = bin2hex(random_bytes(32));
+
+                \App\Models\User::updateRememberToken($user['id'], Hash::generate($token));
+
+                setcookie(
+                    'remember_me',
+                    $user['id'] . ':' . $token,
+                    time() + 60 * 60 * 24 * 30,
+                    '/',
+                    '',
+                    isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                    true
+                );
+            }
 
             return true;
 
@@ -137,11 +149,14 @@ class User extends \Core\Controller
      */
     public function logoutAction() {
 
-        /*
-        if (isset($_COOKIE[$cookie])){
-            // TODO: Delete the users remember me cookie if one has been stored.
-            // https://github.com/andrewdyer/php-mvc-register-login/blob/development/www/app/Model/UserLogin.php#L148
-        }*/
+        if (isset($_COOKIE['remember_me'])) {
+            list($userId) = explode(':', $_COOKIE['remember_me'], 2);
+
+            \App\Models\User::updateRememberToken($userId, null);
+
+            setcookie('remember_me', '', time() - 3600, '/', '', false, true);
+        }
+
         // Destroy all data registered to the session.
 
         $_SESSION = array();

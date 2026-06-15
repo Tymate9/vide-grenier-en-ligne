@@ -21,6 +21,12 @@ error_reporting(E_ALL);
 set_error_handler('Core\Error::errorHandler');
 set_exception_handler('Core\Error::exceptionHandler');
 
+/**
+ * Reconnexion automatique via le cookie "se souvenir de moi"
+ */
+if (!isset($_SESSION['user']) && isset($_COOKIE['remember_me'])) {
+    \App\Models\User::loginFromRememberMeCookie();
+}
 
 /**
  * Routing
