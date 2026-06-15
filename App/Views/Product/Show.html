@@ -36,11 +36,39 @@
                         <h4>Description:</h4>
                         <p>{{article.description}}</p>
                     </div>
-                    <div class="u-area mt-small">
+                    <div class="u-area mt-small contact-form">
+                        <h4>Contacter {{ article.username }}</h4>
 
-                    <a name="submit" href="mailto:{{article.email}}" class="btn btn-primary u-btn">Contacter {{article
-                        .username}}</a>
+                        {% if contactSuccess %}
+                            <div class="alert alert-success">Votre message a bien été envoyé.</div>
+                        {% endif %}
 
+                        {% if contactErrors is defined and contactErrors|length > 0 %}
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    {% for error in contactErrors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <form action="" method="post">
+                            <div class="form-group">
+                                <label for="contact-name">Votre nom</label>
+                                <input type="text" class="form-control" id="contact-name" name="name"
+                                       value="{{ user.username|default('') }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-email">Votre email</label>
+                                <input type="email" class="form-control" id="contact-email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-message">Message</label>
+                                <textarea class="form-control" id="contact-message" name="message" rows="4" required></textarea>
+                            </div>
+                            <button type="submit" name="submit" class="btn btn-primary u-btn">Envoyer</button>
+                        </form>
                     </div>
                 </div>
             </div>

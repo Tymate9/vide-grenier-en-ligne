@@ -56,18 +56,45 @@ class Product extends \Core\Controller
     public function showAction()
     {
         $id = $this->route_params['id'];
+        $contactErrors = [];
+        $contactSuccess = false;
 
         try {
-            Articles::addOneView($id);
+            if (!isset($_POST['submit'])) {
+                Articles::addOneView($id);
+            }
             $suggestions = Articles::getSuggest();
             $article = Articles::getOne($id);
         } catch(\Exception $e){
             var_dump($e);
         }
 
+        if (isset($_POST['submit'])) {
+            $f = $_POST;
+
+            if (empty($f['name']) || empty($f['message']) || !filter_var($f['email'], FILTER_VALIDATE_EMAIL)) {
+                $contactErrors[] = 'Merci de renseigner votre nom, un email valide et un message.';
+            } else {
+                $senderName = str_replace(["\r", "\n"], '', $f['name']);
+                $senderEmail = str_replace(["\r", "\n"], '', $f['email']);
+
+                $subject = 'Vide Grenier en Ligne - ' . $article[0]['name'];
+                $body = "Message de {$senderName} ({$senderEmail}) :\n\n{$f['message']}";
+                $headers = "From: {$senderEmail}\r\nReply-To: {$senderEmail}";
+
+                if (mail($article[0]['email'], $subject, $body, $headers)) {
+                    $contactSuccess = true;
+                } else {
+                    $contactErrors[] = "Une erreur est survenue lors de l'envoi du message.";
+                }
+            }
+        }
+
         View::renderTemplate('Product/Show.html', [
             'article' => $article[0],
-            'suggestions' => $suggestions
+            'suggestions' => $suggestions,
+            'contactErrors' => $contactErrors,
+            'contactSuccess' => $contactSuccess
         ]);
     }
 }
