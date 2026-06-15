@@ -1,6 +1,6 @@
 # Environnement de recette : tourne en parallele du dev (qui reste sur 8080).
 # "name" isole ce stack dans son propre reseau Docker, distinct de celui du dev,
-# meme si certains noms de service internes sont identiques (cf. explications).
+# meme si le service mysql porte le meme nom interne "db_dev" (cf. explications).
 name: vide_grenier_recette
 
 services:
@@ -21,27 +21,16 @@ services:
       - db_recette_data:/var/lib/mysql
       - ./sql/import.sql:/docker-entrypoint-initdb.d/import.sql
 
-  # 2. PHP : image de DEPLOIEMENT (code copie dans l'image, pas de volume de code)
-  # Nom de service "php_dev" conserve car nginx-configuration.txt a
-  # "fastcgi_pass php_dev:9000;" en dur.
-  php_dev:
+  # 2. SERVEUR WEB + PHP (Apache + mod_php), image de DEPLOIEMENT :
+  # le code est COPIE dans l'image au build (Dockerfile.deploy), pas de volume.
+  web_dev:
     build:
       context: .
       dockerfile: Dockerfile.deploy
-    container_name: vide_grenier_php_recette
-    depends_on:
-      - db_dev
-
-  # 3. SERVEUR WEB (NGINX) sur le port 8081 (8080 = dev, 8082 = bloc5-groupe)
-  web_dev:
-    image: nginx:latest
     container_name: vide_grenier_web_recette
     ports:
       - "8081:80"
-    volumes:
-      - ./nginx-configuration.txt:/etc/nginx/conf.d/default.conf
     depends_on:
-      - php_dev
       - db_dev
 
 volumes:
