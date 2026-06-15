@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Articles;
 use App\Utility\Upload;
+use App\Utility\Validator;
 use \Core\View;
 
 /**
@@ -72,9 +73,9 @@ class Product extends \Core\Controller
         if (isset($_POST['submit'])) {
             $f = $_POST;
 
-            if (empty($f['name']) || empty($f['message']) || !filter_var($f['email'], FILTER_VALIDATE_EMAIL)) {
-                $contactErrors[] = 'Merci de renseigner votre nom, un email valide et un message.';
-            } else {
+            $contactErrors = Validator::validateContactForm($f);
+
+            if (empty($contactErrors)) {
                 $senderName = str_replace(["\r", "\n"], '', $f['name']);
                 $senderEmail = str_replace(["\r", "\n"], '', $f['email']);
 
