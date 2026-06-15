@@ -18,28 +18,35 @@ class Product extends \Core\Controller
      */
     public function indexAction()
     {
+        $errors = [];
 
         if(isset($_POST['submit'])) {
 
-            try {
-                $f = $_POST;
+            if (empty($_FILES['picture']['name']) || $_FILES['picture']['error'] === UPLOAD_ERR_NO_FILE) {
+                $errors[] = 'Une photo est obligatoire pour publier une annonce.';
+            }
 
-                // TODO: Validation
+            if (empty($errors)) {
+                try {
+                    $f = $_POST;
 
-                $f['user_id'] = $_SESSION['user']['id'];
-                $id = Articles::save($f);
+                    $f['user_id'] = $_SESSION['user']['id'];
+                    $id = Articles::save($f);
 
-                $pictureName = Upload::uploadFile($_FILES['picture'], $id);
+                    $pictureName = Upload::uploadFile($_FILES['picture'], $id);
 
-                Articles::attachPicture($id, $pictureName);
+                    Articles::attachPicture($id, $pictureName);
 
-                header('Location: /product/' . $id);
-            } catch (\Exception $e){
-                    var_dump($e);
+                    header('Location: /product/' . $id);
+                } catch (\Exception $e){
+                        var_dump($e);
+                }
             }
         }
 
-        View::renderTemplate('Product/Add.html');
+        View::renderTemplate('Product/Add.html', [
+            'errors' => $errors
+        ]);
     }
 
     /**
