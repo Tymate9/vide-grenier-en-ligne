@@ -1,5 +1,5 @@
 services:
-  # 1. NOTRE BASE DE DONNÉES (déjà en place)
+  # 1. NOTRE BASE DE DONNÉES (inchangée)
   db_dev:
     image: mysql:8.0
     container_name: vide_grenier_db_dev
@@ -14,25 +14,16 @@ services:
     volumes:
       - ./sql/import.sql:/docker-entrypoint-initdb.d/import.sql
 
-  # 2. NOTRE MOTEUR PHP
-  php_dev:
-    build: . # Le "." dit à Docker de chercher le "Dockerfile" dans le dossier actuel
-    container_name: vide_grenier_php_dev
-    volumes:
-      # On synchronise ton dossier actuel (.) avec le dossier du serveur (/var/www/html). 
-      # Si tu modifies un fichier sur ton PC, ça le modifiera en direct dans le conteneur !
-      - .:/var/www/html 
-
-  # 3. NOTRE SERVEUR WEB (NGINX)
+  # 2. SERVEUR WEB + PHP (Apache + mod_php dans la même image, voir Dockerfile)
   web_dev:
-    image: nginx:latest
+    build: . # Construit l'image a partir du Dockerfile (php:8.2-apache)
     container_name: vide_grenier_web_dev
     ports:
-      # On mappe le port 8080 de ton PC sur le port 80 du conteneur.
-      - "8080:80" 
+      # On mappe le port 8080 de ton PC sur le port 80 d'Apache dans le conteneur.
+      - "8080:80"
     volumes:
-      - .:/var/www/html # Nginx a aussi besoin de voir tes fichiers
-      - ./nginx-configuration.txt:/etc/nginx/conf.d/default.conf # On injecte la config du code legacy
+      # Code monte en volume : toute modif sur ton PC est immediatement visible
+      # par Apache/PHP dans le conteneur, sans rebuild.
+      - .:/var/www/html
     depends_on:
-      - php_dev # On demande à Nginx d'attendre que PHP soit prêt
       - db_dev
