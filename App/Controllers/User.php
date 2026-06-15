@@ -52,7 +52,10 @@ class User extends \Core\Controller
             // validation
 
             $this->register($f);
-            // TODO: Rappeler la fonction de login pour connecter l'utilisateur
+
+            if ($this->login($f)) {
+                header('Location: /account');
+            }
         }
 
         View::renderTemplate('User/register.html');
