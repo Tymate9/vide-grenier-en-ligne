@@ -1,13 +1,27 @@
-# nginx configuration to remove the question mark from the URL but maintain the query string
+server {
+    # On écoute sur le port 80 à l'intérieur du conteneur
+    listen 80;
+    server_name localhost;
 
-location / { 
-    if (!-f $request_filename){
-        set $rule_0 1$rule_0;
-    }   
-    if (!-d $request_filename){
-        set $rule_0 2$rule_0;
+    # On dit à Nginx que les fichiers publics du site sont dans le dossier /public
+    root /var/www/html/public;
+    index index.php index.html;
+
+    # Règle n°1 : On essaie de trouver le fichier demandé. Sinon, on passe le chemin
+    # en query string vers index.php (équivalent de la RewriteRule Apache d'origine
+    # "RewriteRule . index.php?$1 [QSA,L]" attendue par le routeur PHP).
+    location / {
+        try_files $uri $uri/ @rewrite;
     }
-    if ($rule_0 = "21"){
+
+    location @rewrite {
         rewrite ^/(.*)$ /index.php?$1 last;
-    }   
+    }
+
+    # Règle n°2 : Si on demande un fichier qui finit par .php, on l'envoie à notre conteneur "php_dev" sur le port 9000
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass php_dev:9000;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
 }
