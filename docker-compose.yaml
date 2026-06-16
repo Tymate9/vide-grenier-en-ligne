@@ -1,0 +1,29 @@
+services:
+  # 1. NOTRE BASE DE DONNÉES (inchangée)
+  db_dev:
+    image: mysql:8.0
+    container_name: vide_grenier_db_dev
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: vide_grenier
+      MYSQL_USER: dev_user
+      MYSQL_PASSWORD: dev_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql/import.sql:/docker-entrypoint-initdb.d/import.sql
+
+  # 2. SERVEUR WEB + PHP (Apache + mod_php dans la même image, voir Dockerfile)
+  web_dev:
+    build: . # Construit l'image a partir du Dockerfile (php:8.2-apache)
+    container_name: vide_grenier_web_dev
+    ports:
+      # On mappe le port 8080 de ton PC sur le port 80 d'Apache dans le conteneur.
+      - "8080:80"
+    volumes:
+      # Code monte en volume : toute modif sur ton PC est immediatement visible
+      # par Apache/PHP dans le conteneur, sans rebuild.
+      - .:/var/www/html
+    depends_on:
+      - db_dev

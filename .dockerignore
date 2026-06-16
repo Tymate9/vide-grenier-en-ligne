@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Dependances PHP : reinstallees DANS l'image par "composer install"
+vendor
+
+# Outils/sources front-end non necessaires a l'execution
+# (public/style/main.css est deja le CSS compile, servi tel quel)
+node_modules
+style
+package.json
+package-lock.json
+
+# Tests : non embarques dans l'image de deploiement
+tests
+phpunit.xml
+.phpunit.result.cache
+
+# Fichiers Docker / config specifiques a un environnement particulier
+Dockerfile*
+docker-compose*.yaml
+apache-vhost.conf
+.dockerignore
+
+# Divers
+.idea
+README.md
+LICENSE

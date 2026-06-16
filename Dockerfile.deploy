@@ -1,0 +1,27 @@
+# Image de deploiement (recette / prod) : contrairement au Dockerfile de dev
+# (code monte en volume), le code applicatif est COPIE dans l'image pour
+# obtenir une image autonome, deployable telle quelle sur un serveur.
+
+FROM php:8.2-apache
+
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    && docker-php-ext-install zip pdo pdo_mysql mysqli
+
+# Active le module de reecriture d'URL, requis par public/.htaccess
+RUN a2enmod rewrite
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Remplace le vhost Apache par defaut : DocumentRoot -> public/, AllowOverride All
+COPY apache-vhost.conf /etc/apache2/sites-available/000-default.conf
+
+WORKDIR /var/www/html
+
+COPY . .
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+RUN chown -R www-data:www-data public/storage

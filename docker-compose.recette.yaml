@@ -1,0 +1,37 @@
+# Environnement de recette : tourne en parallele du dev (qui reste sur 8080).
+# "name" isole ce stack dans son propre reseau Docker, distinct de celui du dev,
+# meme si le service mysql porte le meme nom interne "db_dev" (cf. explications).
+name: vide_grenier_recette
+
+services:
+  # 1. BASE DE DONNEES DE RECETTE
+  # Nom de service "db_dev" conserve car App/Config.php a DB_HOST = 'db_dev' en dur :
+  # le code embarque dans l'image (Dockerfile.deploy) doit pouvoir resoudre ce nom.
+  # container_name distinct + volume nomme distinct => donnees separees du dev.
+  db_dev:
+    image: mysql:8.0
+    container_name: vide_grenier_db_recette
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: vide_grenier
+      MYSQL_USER: dev_user
+      MYSQL_PASSWORD: dev_password
+    volumes:
+      - db_recette_data:/var/lib/mysql
+      - ./sql/import.sql:/docker-entrypoint-initdb.d/import.sql
+
+  # 2. SERVEUR WEB + PHP (Apache + mod_php), image de DEPLOIEMENT :
+  # le code est COPIE dans l'image au build (Dockerfile.deploy), pas de volume.
+  web_dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.deploy
+    container_name: vide_grenier_web_recette
+    ports:
+      - "8081:80"
+    depends_on:
+      - db_dev
+
+volumes:
+  db_recette_data:
