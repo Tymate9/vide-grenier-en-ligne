@@ -20,7 +20,6 @@ phpunit.xml
 # Fichiers Docker / config specifiques a un environnement particulier
 Dockerfile*
 docker-compose*.yaml
-apache-vhost.conf
 .dockerignore
 
 # Divers
