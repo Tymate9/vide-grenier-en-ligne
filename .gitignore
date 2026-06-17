@@ -1,6 +1,7 @@
 vendor
 .idea
 composer.lock
+.env
 
 # Uploads utilisateurs generes au runtime (les images d'origine 1.jpeg-31.jpeg restent suivies)
 /public/storage/*
