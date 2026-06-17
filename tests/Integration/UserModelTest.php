@@ -54,9 +54,9 @@ class UserModelTest extends TestCase
      */
     private function connectToDatabase(): PDO
     {
-        $dsn = 'mysql:host=' . Config::DB_HOST . ';dbname=' . Config::DB_NAME . ';charset=utf8';
+        $dsn = 'mysql:host=' . Config::get('DB_HOST', Config::DB_HOST) . ';dbname=' . Config::get('DB_NAME', Config::DB_NAME) . ';charset=utf8';
 
-        return new PDO($dsn, Config::DB_USER, Config::DB_PASSWORD);
+        return new PDO($dsn, Config::get('DB_USER', Config::DB_USER), Config::get('DB_PASSWORD', Config::DB_PASSWORD));
     }
 
     /**
