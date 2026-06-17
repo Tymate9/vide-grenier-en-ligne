@@ -1,36 +1,30 @@
-# Environnement de production : tourne en parallele du dev (8080) et de la recette (8081).
-# "name" isole ce stack dans son propre reseau Docker.
 name: vide_grenier_prod
 
 services:
-  # 1. BASE DE DONNEES DE PRODUCTION — persistante via volume nomme dedie
-  # Nom de service "db_dev" conserve : Config.php a DB_HOST = 'db_dev' en dur dans le code.
-  db_dev:
+  db:
     image: mysql:8.0
     container_name: vide_grenier_db_prod
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: vide_grenier
-      MYSQL_USER: dev_user
-      MYSQL_PASSWORD: dev_password
+    env_file: .env
     volumes:
       - db_prod_data:/var/lib/mysql
       - ./sql/import.sql:/docker-entrypoint-initdb.d/import.sql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # 2. SERVEUR WEB + PHP (Apache + mod_php), image de DEPLOIEMENT :
-  # le code de main est COPIE dans l'image au build (Dockerfile.deploy), pas de volume.
-  web_dev:
-    build:
-      context: .
-      dockerfile: Dockerfile.deploy
+  web:
+    image: vide-grenier-app:prod
     container_name: vide_grenier_web_prod
+    env_file: .env
     ports:
       - "8083:80"
     depends_on:
-      - db_dev
+      db:
+        condition: service_healthy
 
 volumes:
-  # Volume nomme dedie : les donnees MySQL survivent aux redemarrages et recreations
-  # du conteneur. C'est ce qui rend la base "persistante" au sens du sujet.
   db_prod_data:
